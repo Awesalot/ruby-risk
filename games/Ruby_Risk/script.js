@@ -13,26 +13,19 @@ function setup() {
 }
 
 var canvas;
-var boardState = [];
-var boardColor = [];
-var boardSize = -1;
-var boardWeight = -1;
+var rubiesInBox = [];
 var inGame = false;
 var done = false;
+var numRubies;
 var numStones;
 var turn = 0;
-var selectedWeight = -1;
-var selectedTile = -1;
-var maxDist = 12;
+var player1Guess = 0;
+var player2Guess = 0;
+
 var game;
 var message = '';
-var extra = 50;
-var tipping = false;
-var maxTip = 32;
-var currTip = 0;
+
 var numberTextSize = 24;
-var leftTorque = 0;
-var rightTorque = 0;
 
 function draw() {
     background(220);
@@ -55,12 +48,15 @@ function draw() {
     }
 }
 
+function randomIntFromInterval(min, max) { // min and max included 
+    return Math.floor(Math.random() * (max - min + 1) + min)
+}
+
     /*
      * Properties is an object containing all necessary information for game.
      *
-     * - numberOfWeights: number of weights in the game
-     * - boardLength: length of the board
-     * - boardWeight: the weight of the board
+     * - numberOfRubies: number of rubies in the game
+     * - numberOfBoxes: number of boxes in the game
      * - player1: Gives the name for player 1.
      * - player2: Gives the name for player 2.
      * - time: Amount of time that each player has
@@ -69,47 +65,43 @@ function startGame() {
     message = '';
     player1 = document.getElementById("player-1").value;
     player2 = document.getElementById("player-2").value;
-    numStones = document.getElementById("number-of-weights").value;
-    boardSize = document.getElementById("size-of-board").value;
-    boardWeight = document.getElementById('weight-of-board').value;
+    numRubies = document.getElementById("number-of-rubies").value;
+    numBoxes = document.getElementById("number-of-boxes").value;
 
-    if(boardSize < 2 * numStones + 2) {
-            document.getElementById('error-message').innerText = "Board size is too small. Number of weights must be less than or equal to half length of the board.";
+    if(numBoxes < 2) {
+            document.getElementById('error-message').innerText = "Number of boxes cannot be lesser than 2";
             document.getElementById('error-container').style.display = 'block';
             inGame = false;
             return;
     }
 
+    if(numRubies < 1) {
+        document.getElementById('error-message').innerText = "Number of rubies cannot be lesser than 1";
+        document.getElementById('error-container').style.display = 'block';
+        inGame = false;
+        return;
+}
+
     game = new Game({
         player1: player1,
         player2: player2,
-        numberOfWeights: numStones,
-        boardLength: boardSize,
-        boardWeight: boardWeight,
+        numberOfBoxes: numBoxes,
+        numberOfRubies: numRubies,
         time: 120
     });
 
     done = false;
-    leftTorque = game.board.leftTorque;
-    rightTorque = game.board.rightTorque;
-    currTip = 0;
-    tipping = false;
-    boardState = [];
-    boardColor = [];
-    selectedTile = -1;
-    selectedWeight = -1;
-    turn = 0;
+    boxRubies = 0;
+    totalRubiesUsed = 0;
+    rubiesInBox = [];
 
-    for(var i = 0; i < boardSize; i++) {
-        boardState.push(0);
-        boardColor.push(0);
-
+    for(var i = 0; i < numBoxes - 1; i++) {
+        boxRubies = parseInt((randomIntFromInterval(1, 100) / 100.0) * numRubies);
+        rubiesInBox.push(boxRubies);
+        totalRubiesUsed = totalRubiesUsed + boxRubies;
     }
 
-    var defaultBlock = boardSize/2;
-    defaultBlock-=4;
-    boardColor[defaultBlock] = 3;
-    boardState[defaultBlock] = 3;
+    rubiesInBox.push(numRubies - totalRubiesUsed);
 
     inGame = true;
 }
