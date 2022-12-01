@@ -238,80 +238,6 @@ function mouseClicked() {
     }
 }
 
-  function drawUnusedWeights() {
-    textSize(numberTextSize);
-    fill(255,0,0);
-
-    var start = 10;
-    var length = width - 168;
-    var step = length/10/2;
-    var right = 0;
-    var down = 120;
-
-    for(var i = 1; i <= numStones; ++i) {
-        var found = false;
-        for(var j = 0; j < boardSize; ++j) {
-            if (boardState[j] == i && boardColor[j] == 1) {
-                found = true;
-            }
-        }
-        if (!found ) {
-            if(selectedWeight == i && turn == 0) {
-                fill(0,255,0);
-                stroke(0,0,0);
-                textSize(numberTextSize + 4);
-                strokeWeight(1);
-
-            }else{
-                fill(255,0,0);
-                stroke(255,0,0);
-                strokeWeight(0);
-            }
-            text(i, (start+right*step) + extra, down );
-            textSize(numberTextSize);
-            strokeWeight(0);
-        }
-        right = right + 2;
-        if(right >= 10 ) {
-            right = 0;
-            down = down + 30;
-        }
-    }
-    fill(0,0,255);
-    stroke(0,0,255);
-    start = (width / 2)+10;
-    down = 120;
-    right = 0;
-    for(var i = 1; i <= numStones; ++i) {
-        var found = false;
-        for( var j = 0; j <= boardSize; ++j) {
-            if( boardState[j] == i && boardColor[j] == 2) {
-                found = true;
-            }
-        }
-        if(!found) {
-            if(selectedWeight == i && turn ==1) {
-                fill(0,255,0);
-                stroke(0,0,0);
-                textSize(numberTextSize +4);
-                strokeWeight(1);
-            }else{
-                fill(0,0,255);
-                stroke(0,0,255);
-            }
-            text(i, (start + right * step) + extra, down);
-            textSize(numberTextSize);
-            strokeWeight(0);
-        }
-        right = right + 2;
-
-        if( right >= 10 ) {
-            right = 0;
-            down = down + 30;
-        }
-    }
-}
-
 function nextTurn() {
     //logic for next turn
     /* important variables
@@ -324,7 +250,7 @@ function nextTurn() {
 
     if(done) return;
     // Need way to parse guesses
-    
+
     if(game.gameState === 'Placing Weights') {
         message = game.placeWeight(Number(selectedWeight), Number(selectedTile) - Number(game.board.boardLength) / 2);
         boardState[selectedTile] = selectedWeight;
@@ -450,26 +376,10 @@ class Game {
         return gameOver;
     }
 
-    placeWeight(weight, position) {
-        message = this.isValidPlacement(weight, position);
+    makeGuess(guess) {
+        message = this.isValidGuess(guess);
         if(message === '') {
-            this.board.boardState[position] = weight;
-            this.moveState[position] = this.currentTurn;
-            this.players[this.currentTurn].containsWeight[weight] = false;
-
-            if(this.isGameOver()) {
-                return 'Tipping has occurred by ' + this.players[this.currentTurn].name
-            } else {
-                message = this.players[this.currentTurn].name + ' placed weight ' + weight + ' at position ' + position + '.';
-                this.stonesPlaced++;
-                if(this.stonesPlaced == 2 * this.numberOfWeights) {
-                    this.gameState = 'Removing Weights';
-                    message += '\n. Stage change: Now removing weights.'
-                }
-
-                this.currentTurn ^= 1;
-                return message;
-            }
+            // do the thing  
         } else {
             this.gameOver = true;
             return message;
