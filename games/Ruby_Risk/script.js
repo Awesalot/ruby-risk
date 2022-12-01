@@ -150,51 +150,10 @@ function drawTable() {
     triangle(start + (boardSize / 2 - 3.0) * step + 1.25, 3 * height / 4, start + (boardSize / 2 - 3.125) * step + 1.25, 3 * height / 4 + 40, start +(boardSize / 2 - 2.875) * step + 1.25, 3 * height / 4 + 40);
     rect(start + (boardSize / 2 - 3.125) * step + 1.25, height, step / 4, - (height / 4) + 40);
 
-    // UPSIDE DOWN RECTANGLES
-    // triangle(start + (boardSize / 2 - 3) * step, 3 * height / 4 + 40, start + (boardSize / 2 - 3.75) * step, 3 * height / 4, start + (boardSize/2 - 2.25) * step, 3 * height / 4);
-
-    // triangle(start + (boardSize / 2 - 1) * step, 3 * height / 4 + 40, start + (boardSize / 2 - 1.75) * step, 3 * height / 4, start + (boardSize/2 - 0.25) * step, 3 * height / 4);
-
     triangle(start + (boardSize / 2 - 1) * step + 1.25, 3 * height / 4, start + (boardSize / 2 - 1.125) * step + 1.25, 3 * height / 4 + 40, start + (boardSize / 2 - .875) * step + 1.25, 3 * height / 4 + 40);
     rect(start + (boardSize / 2 - 1.125) * step + 1.25, height, step / 4, - (height / 4) + 40);
 }
 
-function tipBoard() {
-    var start = 60;
-    var length = width - 168;
-    fill(0);
-    stroke(0);
-    var step = length / boardSize;
-    translate(currTip * 10,0);
-    rotate((PI/200) * currTip);
-    rect(start, 3 * height/4, length - step, 3);
-    currTip++;
-    if(currTip > maxTip) {
-        currTip = maxTip;
-    }
-}
-
-function drawTiles() {
-            var start = 60;
-            var length = width -168;
-            var flip = 30;
-            var step = length/boardSize;
-            for( var i =0; i < boardSize; ++i) {
-                if ( boardState[i] == 0)continue;
-                if (boardColor[i] == 1) {
-                    fill(255, 0, 0);
-                    stroke(255,0,0);
-                }else if(boardColor[i] == 2) {
-                    fill(0, 0, 255);
-                    stroke(0,0,255);
-                }else{
-                    fill(0,0,0);
-                }
-                textSize(numberTextSize);
-                rect(start + i * step - 10, 3 * height /4 - 20 - (boardState[i] * 10), 20,boardState[i] * 10);
-                text(boardState[i], start + i * step - 3, 3 * height /4 - 30 - (boardState[i] * 10));
-        }
-}
 
 function drawPlayers() {
             // Player 1 Text
@@ -356,15 +315,16 @@ function mouseClicked() {
 function nextTurn() {
     //logic for next turn
     /* important variables
-        turn = current player turn. 0 = player1. 1 = player2
-        selectedTile = the current location that the current player will choose to place or remove a weight
-        selectedWeight = the current weight that the current player has chosen
-        boardColor = array that tells you if a player has placed a weight on a tile. boardColor[i] can be 0,1,2. 0 = tile is empty. 1 = player 1 has placed a weight. 2 = player 2 has placed a weight.
-        numStones = number of weights. number of stones.
-        boardSate = array  that tells you the current weight placed on the board. boardStae[i] can be 1  to numStones. boardState[0] means there is no weight here, every other value means that there is a stone of weight boardState[i] at index 'i'.
+        turn = current player turn: 0 = player1, 1 = player2
+        currentBox = the current box that the current player will guess for
+        selectedGuess = the current guess that the current player has chosen
+        numRubies = number of rubies
+        rubiesInBox = array that tells you the current number of rubies in each box 
     */
 
     if(done) return;
+    // Need way to parse guesses
+    
     if(game.gameState === 'Placing Weights') {
         message = game.placeWeight(Number(selectedWeight), Number(selectedTile) - Number(game.board.boardLength) / 2);
         boardState[selectedTile] = selectedWeight;
@@ -373,20 +333,6 @@ function nextTurn() {
         message = game.removeWeight(Number(selectedTile) - Number(game.board.boardLength) / 2);
         boardState[selectedTile] = 0;
     }
-
-    leftTorque = game.board.leftTorque;
-    rightTorque = game.board.rightTorque;
-
-    if(message.indexOf("Tipping") != -1) { // TIP BOARD
-        console.log('Board has tipped');
-        tipping = true;
-	game.gameOver = true;
-    }
-
-    turn ^= 1;
-    selectedTile = -1;
-    selectedWeight = -1;
-    drawUnusedWeights();
 
     // IN PROD
     if(game.gameOver) {
@@ -405,18 +351,6 @@ function drawMessage() {
     textAlign(CENTER, CENTER);
 
     text(message, width / 2, height / 2 - 50);
-}
-
-function drawTorque() {
-    fill(255, 153, 0 );
-    stroke(255, 153, 0 );
-    strokeWeight(1);
-    textSize(24);
-
-    textAlign(CENTER, CENTER);
-
-    text(leftTorque, (boardSize / 2 - 3) * ((width - 168) / boardSize) + 20, 15 * height / 16);
-    text(rightTorque, 120 + (boardSize / 2 - 1) * ((width - 168) / boardSize) - 20, 15 * height / 16);
 }
 
 // 'https://cims.nyu.edu/drecco2016/games/NoTipping/saveScore.php'
@@ -444,30 +378,14 @@ function gameOver() {
  * - leftTorque, rightTorque: the left and right torque's values.
  * - boardState[i]: An array which stores the weight if there is one at index i.
  */
-class Board {
+class Box {
 
-    constructor(numberOfWeights, boardLength, boardWeight) {
-        if(boardLength <= 3) {
-            throw "Board size is too small"
+    constructor(numberOfRubies) {
+        if(numRubies < 0) {
+            throw "Each box needs to have non-negative number of rubies"
         }
 
-        if(numberOfWeights <= 0) {
-            throw "Not enough weights to play"
-        }
-
-        this.leftTorque = 0;
-        this.rightTorque = 0;
-
-        this.numberOfWeights = numberOfWeights;
-        this.boardLength = boardLength;
-        this.boardWeight = boardWeight;
-        this.boardState = new Array(boardLength * 2 + 1);
-
-        for(let i = -this.boardLength; i <= this.boardLength; ++i) {
-            this.boardState[i] = 0;
-        }
-
-        this.boardState[-4] = 3;
+        this.currentRubies = numberOfRubies
     }
 }
 
@@ -481,16 +399,10 @@ class Board {
  */
 class Player {
 
-    constructor(name, numberOfWeights, timeLeft) {
+    constructor(name, numberOfRubies, timeLeft) {
         this.name = name;
-        this.numberOfWeights = numberOfWeights;
+        this.numberOfRubies = numberOfRubies;
         this.timeLeft = timeLeft;
-
-        this.containsWeight = new Array(numberOfWeights + 1);
-
-        for(var i = 1; i <= numberOfWeights; ++i) {
-            this.containsWeight[i] = true;
-        }
     }
 }
 
@@ -507,27 +419,22 @@ class Game {
      * - time: Amount of time that each player has
      */
     constructor(properties) {
-        this.numberOfWeights = properties.numberOfWeights;
-        this.boardLength = properties.boardLength;
-        this.boardWeight = properties.boardWeight;
+        this.numberOfBoxes = properties.numberOfBoxes;
+        this.numberOfRubies = properties.numberOfRubies;
         this.totalTime = properties.time;
         this.gameOver = false;
-        this.gameState = 'Placing Weights';
+        this.gameState = 'Guessing';
         this.currentTurn = 0;
-        this.stonesPlaced = 0;
-        this.stonesRemoved = 0;
+        this.rubiesGuessed = 0;
+        this.rubiesRecieved = 0;
 
         this.players = new Array(2);
-        this.players[0] = new Player(properties.player1, this.numberOfWeights, this.totalTime);
-        this.players[1] = new Player(properties.player2, this.numberOfWeights, this.totalTime);
+        this.players[0] = new Player(properties.player1, this.numberOfRubies, this.totalTime);
+        this.players[1] = new Player(properties.player2, this.numberOfRubies, this.totalTime);
 
-        this.board = new Board(this.numberOfWeights, this.boardLength, this.boardWeight);
-
-        // Keeps track of who made the move at i-th spot in board
-        this.moveState = new Array(this.boardLength * 2 + 1);
-        for(let i = -this.boardLength; i <= this.boardLength; ++i) {
-            this.moveState[i] = -1;
-        }
+        this.boxes = new Array(this.numberOfBoxes)
+        
+        // Get box quantities
 
         this.isGameOver();
     }
@@ -538,29 +445,11 @@ class Game {
      */
     isGameOver() {
         // initialize with board weight
-        this.board.leftTorque = 3 * this.boardWeight;
-        this.board.rightTorque = 1 * this.boardWeight;
-
-        for(var i = -this.boardLength; i <= this.boardLength; ++i) {
-            this.board.leftTorque += (i + 3) * this.board.boardState[i];
-            this.board.rightTorque += (i + 1) * this.board.boardState[i];
-        }
-
-        this.board.leftTorque = - this.board.leftTorque;
-        this.board.rightTorque = - this.board.rightTorque;
-
-        var gameOver = (this.board.leftTorque > 0) || (this.board.rightTorque < 0);
+        // Need game over condition
+        gameOver = true
         return gameOver;
     }
 
-    /*
-     * Method to place a weight at a given position. Validates to see first if move
-     * is valid and then places weight to see if it results in tipping.
-     *
-     * @see isValidPlacement
-     *
-     * returns a message, indicating successful removal or whether tipping has occurred.
-     */
     placeWeight(weight, position) {
         message = this.isValidPlacement(weight, position);
         if(message === '') {
@@ -588,64 +477,13 @@ class Game {
     }
 
     /*
-     * Check before weight placement to see if it is a valid move:
-     * - position must be within board length
-     * - position at board must be empty for weight to be placed
-     * - player must contain the weight that they are placing
+     * Check before guess to see if it is a valid move:
+     * - guess must be greater than equal to 0
      */
-    isValidPlacement(weight, position) {
+    isValidGuess(guess) {
         // instead of throwing error, set game to over...
-        if(position < -this.boardLength || position > this.boardLength || this.board.boardState[position] != 0) {
-            return 'Invalid position from ' + this.players[this.currentTurn].name;
-        }
-
-        if(!this.players[this.currentTurn].containsWeight[weight]) {
-            return 'Invalid weight from ' + this.players[this.currentTurn].name;
-        }
-
-        return '';
-    }
-
-    /*
-     * Method to remove a weight from a given position. Checks for move validity
-     * and then if resulting move results in tipping.
-     *
-     */
-    removeWeight(position) {
-        message = this.isValidRemoval(position);
-        if(message === '') {
-            var weight = this.board.boardState[position];
-            this.board.boardState[position] = 0;
-            this.stonesRemoved += 1;
-
-            if (this.isGameOver()) {
-                return 'Tipping has occurred by ' + this.players[this.currentTurn].name;
-            } else {
-                // send message to client or display.
-                message = this.players[this.currentTurn].name + ' removed weight ' + weight + ' at position ' + position + '.';
-                this.currentTurn ^= 1;
-
-                if(this.stonesRemoved == 2 * this.numberOfWeights) {
-                    message = "Game has ended in a tie";
-                    this.gameOver = true;
-                }
-
-                return message;
-            }
-        } else {
-            gameOver = true;
-            return message;
-        }
-    }
-
-    /*
-     * Check before weight removal to see if it is a valid move:
-     * - position selected is within board length
-     * - there exists a stone in this position
-     */
-    isValidRemoval(position) {
-        if(position < -this.boardLength || position > this.boardLength || this.board.boardState[position] == 0) {
-            return 'Invalid position from ' + this.players[this.currentTurn].name;
+        if(guess < 0) {
+            return 'Invalid guess from ' + this.players[this.currentTurn].name;
         }
 
         return '';
