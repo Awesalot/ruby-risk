@@ -35,13 +35,8 @@ function draw() {
         strokeWeight(0);
         drawMessage();
         drawPlayers();
-        drawUnusedWeights();
-        drawTorque();
         if(!tipping) {
-            strokeWeight(0);
             drawTable();
-            drawTiles();
-            strokeWeight(1);
         } else{
             tipBoard();
         }
