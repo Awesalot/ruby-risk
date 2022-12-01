@@ -32,7 +32,7 @@ var numberTextSize = 24;
 
 function makeBoxes(numBoxes) {
     for (var i = 0; i < numBoxes; i++) {  
-        var img = "<img src ='images/box.drawio.png' id='boxid"+i+"' onclick='updateBox("+i+")' />"; 
+        var img = "<div class='photo'> <img src ='images/box.drawio.png' id='boxid"+i+"' onclick='updateBox("+i+")' /> </div>"; 
         $(".game-box").append(img);
     }
 }
@@ -52,7 +52,7 @@ function updateBox(boxIndex) {
 
     player1Total += player1Reward;
     player2Total += player2Reward;
-    
+
 }
 
 function draw() {

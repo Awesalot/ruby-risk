@@ -45,3 +45,21 @@ button.submit-move {
 .btn-container {
 	overflow: auto;
 }
+
+.game-box {
+	display: flex;
+	flex-wrap: wrap;
+	margin: 0 50px;
+	padding: 30px;
+}
+
+.photo {
+	max-width: 31.333%;
+	padding: 0 10px;
+	height: 240px;
+}
+
+.photo img {
+	width: 100%;
+	height: 100%;
+}
