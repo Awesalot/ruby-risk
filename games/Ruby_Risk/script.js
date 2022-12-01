@@ -14,6 +14,7 @@ function setup() {
 
 var canvas;
 var rubiesInBox = [];
+var rubiesInBoxP2 = [];
 var inGame = false;
 var done = false;
 var numRubies;
@@ -21,11 +22,38 @@ var numStones;
 var turn = 0;
 var player1Guess = 0;
 var player2Guess = 0;
+var player1Total = 0;
+var player2Total = 0;
 
 var game;
 var message = '';
 
 var numberTextSize = 24;
+
+function makeBoxes(numBoxes) {
+    for (var i = 0; i < numBoxes; i++) {  
+        var img = "<img src ='images/box.drawio.png' id='boxid"+i+"' onclick='updateBox("+i+")' />"; 
+        $(".game-box").append(img);
+    }
+}
+
+function updateBox(boxIndex) {
+    // Use the guesses of the players
+    let player1Reward = 0;
+    let player2Reward = 0;
+    if(rubiesInBox[boxIndex] >= player1Guess) {
+        player1Reward = player1Guess;
+        rubiesInBox[boxIndex] -= player1Guess;
+    }
+    if(rubiesInBoxP2[boxIndex] >= player2Guess) {
+        player2Reward = player2Guess;
+        rubiesInBoxP2[boxIndex] -= player2Guess;
+    }
+
+    player1Total += player1Reward;
+    player2Total += player2Reward;
+    
+}
 
 function draw() {
     background(220);
@@ -89,14 +117,19 @@ function startGame() {
     boxRubies = 0;
     totalRubiesUsed = 0;
     rubiesInBox = [];
+    rubiesInBoxP2 = [];
 
     for(var i = 0; i < numBoxes - 1; i++) {
         boxRubies = parseInt((randomIntFromInterval(1, 100) / 100.0) * numRubies);
         rubiesInBox.push(boxRubies);
+        rubiesInBoxP2.push(boxRubies);
         totalRubiesUsed = totalRubiesUsed + boxRubies;
     }
 
     rubiesInBox.push(numRubies - totalRubiesUsed);
+    rubiesInBoxP2.push(numRubies - totalRubiesUsed);
+
+    makeBoxes(numBoxes, rubiesInBox);
 
     inGame = true;
 }
@@ -240,7 +273,8 @@ function nextTurn() {
         currentBox = the current box that the current player will guess for
         selectedGuess = the current guess that the current player has chosen
         numRubies = number of rubies
-        rubiesInBox = array that tells you the current number of rubies in each box 
+        rubiesInBox = array that tells you the current number of rubies in each box for player 1
+        rubiesInBoxP2 = array that tells you the current number of rubies in each box for player 2
     */
 
     if(done) return;
